@@ -4,10 +4,11 @@ import socket
 class IrcBot:
     """ A simple irc bot which handles basic irc server connection
     """
+    irc_socket = None
     bot_name_ = ''
     server_ = ''
     port_ = 0
-    irc_socket = None
+    channel_ = ''
 
     def __init__(self, botname="stupid_bot", server="localhost", port=6667):
         self.bot_name_ = botname
@@ -15,9 +16,10 @@ class IrcBot:
         self.port_ = port
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def join(self, chan):
-        self.irc_socket.send('JOIN ' + chan + '\n')
-        print 'join channel: ' + chan
+    def join(self, channel):
+        self.channel_ = channel
+        self.irc_socket.send('JOIN ' + self.channel_ + '\n')
+        print 'join channel: ' + self.channel_
 
     def ping(self):
         self.irc_socket.send("PONG :pingis\n")
@@ -41,9 +43,16 @@ class IrcBot:
         if message.find(' command ') != -1:
             return True
 
+    def command(self, message):
+        self.irc_socket.send(message)
+
+    def message(self, output_message):
+        self.irc_socket.send("PRIVMSG " + self.channel_ + " :" + output_message + "\n")
+
+
     # Mandatory function to keep connection alive.
     @property
-    def stay_alive(self):
+    def get_message(self):
         message = self.irc_socket.recv(2048)
         message = message.strip('\n\r')
         print(message)
@@ -53,11 +62,13 @@ class IrcBot:
         assert isinstance(message, object)
         return message
 
-# Create and connect
-mybot = IrcBot("bot", "boomer.qld.au.starchat.net", 6667)
-mybot.connect('#thisisatestchan')
 
-while 1:
-    # Loop mandatory function to keep connection with server,alive!
-    # return message for further processing
-    mybot.stay_alive
+def main():
+    # Create and connect
+    my_bot = IrcBot("bot", "boomer.qld.au.starchat.net", 6667)
+    my_bot.connect('#thisisatestchan')
+
+    while 1:
+        # Loop mandatory function to keep connection with server,alive!
+        # return message for further processing
+        my_bot.get_message
