@@ -2,7 +2,7 @@ from ircbot import IrcBot
 
 
 class SoccerBot(IrcBot):
-    """ A simple irc bot which handles basic irc server connection
+    """ A game stats bot for daily table soccer matches.
     """
 
     def show_stats(self):
