@@ -5,13 +5,12 @@ class SoccerBot(IrcBot):
     """ A game stats bot for daily table soccer matches.
     """
 
-    def show_stats(self):
-        print 'Show stats'
+    def show_stats(self,arg):
+        print 'Show stats' + arg
 
-
-    def change_topic(self, argument):
-        print 'Change Topic'
-        self.command("TOPIC " + self.channel_ + " " + str_split [1] + "\n")
+    def change_topic(self, arg):
+        print 'Change Topic to: ' + arg
+        self.send(('TOPIC %s %s\r' % (self.channel_, arg)))
 
     # Command dictionary
     command_dict = {
@@ -19,10 +18,14 @@ class SoccerBot(IrcBot):
         ':!stats ': show_stats,
     }
 
-    def handle_command(self, message):
-        for command in self.command_dict:
-            if command in message:
-                self.command_dict[command](self)
+    def handle_message(self, message):
+        if len(message):
+            for command in self.command_dict:
+                for line in message:
+                    if command in line:
+                        param = line.split(command)[1]
+                        print 'handle command: ' + command + param
+                        self.command_dict[command](self, param)
 
 
 # Create and connect
@@ -34,4 +37,4 @@ while 1:
     # Loop mandatory function to keep connection with server,alive!
     # return message for further processing
     message = my_bot.get_message
-    my_bot.handle_command(message)
+    my_bot.handle_message(message)
