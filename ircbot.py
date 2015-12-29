@@ -55,10 +55,13 @@ class IrcBot:
 
     def send(self, message):
         logging.info('Sent: ' + message)
-        self.irc_socket.send(message + '\n')
+        self.irc_socket.send(message + "\n")
 
     def message(self, output_message):
-        self.irc_socket.send("PRIVMSG " + self.channel_ + " :" + output_message)
+        lines = output_message.split("\n")
+        for line in lines:
+            print "line: " + line
+            self.irc_socket.send("PRIVMSG " + self.channel_ + " :" + line + '\r')
 
     # Mandatory function to keep connection alive.
     @property
