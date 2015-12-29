@@ -1,21 +1,33 @@
 from ircbot import IrcBot
+from mongodb import SoccerDB
 
 
 class SoccerBot(IrcBot):
     """ A game stats bot for daily table soccer matches.
     """
 
-    def show_stats(self,arg):
-        print 'Show stats' + arg
+    db = SoccerDB()
+
+    def show_stats(self, arg):
+        # print 'Show stats' +
+        message = self.db.get_stats()
+        self.message(message)
 
     def change_topic(self, arg):
         print 'Change Topic to: ' + arg
         self.send(('TOPIC %s %s\r' % (self.channel_, arg)))
 
+    def set_score(self, arg):
+        print 'SetScore: %s' % arg
+        names = arg.split(' ')
+        self.db.update_score(names)
+        self.show_stats("")
+
     # Command dictionary
     command_dict = {
         ':!topic ': change_topic,
         ':!stats ': show_stats,
+        ':!score ': set_score,
     }
 
     def handle_message(self, message):
