@@ -17,10 +17,15 @@ class SoccerDB:
             post = {"player": name,
                     "score": score}
             self.posts.insert_one(post).inserted_id
+        assert isinstance(name, object)
         print 'Player %s already exists!' % name
 
     def update_score(self, names):
         for name in names:
+            if len(name) < 4:
+                return
+
+            self.create_player(name)
             result = self.db.posts.update(
                     {'player': name},
                     {'$inc': {'score': +1, "metrics.orders": 1}}
@@ -47,8 +52,8 @@ class SoccerDB:
         # print "Current stats:"
         for document in cursor:
             assert isinstance(document, object)
-            output_string += document['player'] + ': ' + str(document['score']) + '\n'
-        print output_string
+            output_string += document['player'] + ': ' + str(document['score']) + '\r\n'
+        # print output_string
         return output_string
 
 
