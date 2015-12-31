@@ -10,24 +10,35 @@ class SoccerBot(IrcBot):
 
     def show_stats(self, arg):
         # print 'Show stats' +
-        message = self.db.get_stats()
+        message = self.db.get_stats
         self.message(message)
 
     def change_topic(self, arg):
         print 'Change Topic to: ' + arg
         self.send(('TOPIC %s %s\r' % (self.channel_, arg)))
 
-    def set_score(self, arg):
-        print 'SetScore: %s' % arg
+    def score(self, arg):
+        print '%s have lost...' % arg
         names = arg.split(' ')
         self.db.update_score(names)
+        self.show_stats("")
+
+    def set_score(self, arg):
+        try:
+            name, value = arg.split(' ')
+        except ValueError:
+            print "Input not correct!"
+            return
+        print 'Set score of %s to %s' % (name, value)
+        self.db.set_score(name,value)
         self.show_stats("")
 
     # Command dictionary
     command_dict = {
         ':!topic ': change_topic,
-        ':!stats ': show_stats,
-        ':!score ': set_score,
+        ':!stats': show_stats,
+        ':!score ': score,
+        ':!set ': set_score,
     }
 
     def handle_message(self, message):
