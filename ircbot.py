@@ -2,6 +2,11 @@ import socket
 import logging
 
 
+def findcommand(message, command):
+    if message.find(command) != -1:
+        return True
+
+
 class IrcBot:
     """ A simple irc bot which handles basic irc server connection
     """
@@ -10,11 +15,13 @@ class IrcBot:
     server_ = ''
     port_ = 0
     channel_ = ''
+    # List of owners
+    bot_owners = []
 
-    logging.basicConfig(level=logging.INFO, filename="sfpin.log", format="%(asctime)s - %(name)s - %(message)s",
+    logging.basicConfig(level=logging.INFO, filename="ircbot.log", format="%(asctime)s - %(name)s - %(message)s",
                         datefmt="%H:%M:%S", filemode='w')
     console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
+    console.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
@@ -49,10 +56,6 @@ class IrcBot:
         # Respond to PING
         self.join(chan)
 
-    def findcommand(self, message, command):
-        if message.find(command) != -1:
-            return True
-
     def send(self, message):
         logging.info('Sent: ' + message)
         self.irc_socket.send(message + "\n")
@@ -63,27 +66,53 @@ class IrcBot:
             print "line: " + line
             self.irc_socket.send("PRIVMSG " + self.channel_ + " :" + line + '\r')
 
+    def set_owner(self, arg):
+        try:
+            owners = arg.split(' ')
+        except ValueError:
+            print "Input not correct!"
+            return
+        assert isinstance(owners, object)
+        print 'Old bot owners are: %s' % self.bot_owners
+        if owners not in self.bot_owners:
+            self.bot_owners.extend(owners)
+            print 'New bot owners are: %s' % self.bot_owners
+
     # Mandatory function to keep connection alive.
     @property
     def get_message(self):
-        message = self.irc_socket.recv(2048)
-        message = message.split('\r\n')
+        irc_message = self.irc_socket.recv(2048)
+        irc_message = irc_message.split('\r\n')
 
-        for line in message:
-            logging.debug(line)
-            if self.findcommand(line, "PING "):
+        for line in irc_message:
+            if line is None:
+                return
+            if findcommand(line, " PRIVMSG "):
+                try:
+                    # Split irc message and command param
+                    message = line.split(' ')
+                    if len(message) >= 4:
+                        output = message[0:4] + [' '.join(message[4:])]
+                    else:
+                        output = message[0:3].append(' ')
+                    return output
+                except ValueError:
+                    print 'Could not handle message'
+
+            elif findcommand(line, "PING "):
+                logging.info(line)
                 self.ping(line.split(' ')[1])
-        assert isinstance(message, object)
-        return message
-
 
 def main():
     # Create and connect
-    my_bot = IrcBot("bot", "dreamhack.se.quakenet.org", 6667)
+    my_bot = IrcBot("Bot", "boomer.qld.au.starchat.net", 6667)
+
+    my_bot.set_owner(':newbie|2!kvirc@Star531723.dynamic.RZ.UniBw-Muenchen.de')
     my_bot.connect('#thisisatestchan')
-    my_bot.join('#thisisatestchan')
+    my_bot.message('I am here!')
 
     while 1:
         # Loop mandatory function to keep connection with server,alive!
         # return message for further processing
         my_bot.get_message
+
