@@ -45,6 +45,7 @@ class SoccerDB:
             print str(result)
 
     def set_score(self, name, score):
+        self.create_player(name)
         result = self.db.tas_soccer.update(
                 {'player': name},
                 {'$set': {'score': int(score)}}
