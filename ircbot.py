@@ -63,7 +63,7 @@ class IrcBot:
     def message(self, output_message):
         lines = output_message.split("\n")
         for line in lines:
-            print "line: " + line
+            logging.info('line: ' + line)
             self.irc_socket.send("PRIVMSG " + self.channel_ + " :" + line + '\r')
 
     def set_owner(self, arg):
