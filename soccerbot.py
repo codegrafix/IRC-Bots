@@ -8,34 +8,52 @@ class SoccerBot(IrcBot):
 
     db = SoccerDB()
 
-    def show_stats(self, arg):
-        # print 'Show stats' +
-        message = self.db.get_stats
+    def show_winner(self, args=""):
+        message = self.db.get_stats(True)
+        self.message(message)
+
+    def show_loser(self, args=""):
+        message = self.db.get_stats(False)
+        self.message(message)
+
+    def last_games(self,args=""):
+        message = self.db.get_last_games(9)
         self.message(message)
 
     def change_topic(self, arg):
         print 'Change Topic to: ' + arg
         self.send(('TOPIC %s %s\r' % (self.channel_, arg)))
 
-    def set_loser(self, arg):
+    def set(self, arg):
         try:
-            names = arg.split(' ')
+            winner, loser = arg.split(' vs. ')
+            winner = winner.split(' ')
+            loser = loser.split(' ')
         except ValueError:
             print "Input not correct!"
             return
-        print '%s are losers...' % names
-        self.db.update_score(names)
-        self.show_stats("")
+        self.db.update_score(loser, False)
+        self.db.update_score(winner, True)
+        self.db.update_gameinfo(winner, loser)
+        self.show_loser()
 
-    def set_score(self, arg):
+    def set_winner(self, arg):
+        self.set_score(arg, True)
+
+    def set_loser(self, arg):
+        self.set_loser(arg, False)
+
+    def set_score(self, arg, winner_type):
         try:
             name, value = arg.split(' ')
         except ValueError:
             print "Input not correct!"
             return
         print 'Set score of %s to %s' % (name, value)
-        self.db.set_score(name, value)
-        self.show_stats("")
+        if winner_type:
+            self.db.set_score(name, value, winner_type)
+            self.show_loser()
+            self.show_winner()
 
     def owner(self, args):
         self.set_owner(args)
@@ -43,11 +61,14 @@ class SoccerBot(IrcBot):
     # Command dictionary
     command_dict = {
         ':!topic': change_topic,
-        ':!stats': show_stats,
+        ':!loser': show_loser,
+        ':!winner': show_winner,
+        ':!last': last_games,
     }
     super_user_command_dict = {
-        ':!loser': set_loser,
-        ':!set': set_score,
+        ':!set': set,
+        ':!setwinner': set_winner,
+        ':!setloser': set_loser,
         ':!owner': owner,
     }
 
@@ -73,9 +94,8 @@ class SoccerBot(IrcBot):
         if command in self.command_dict:
             self.command_dict[command](self, args)
 
-
-my_bot = SoccerBot("SoccerBot", "boomer.qld.au.starchat.net", 6667)
-my_bot.set_owner(':newbie|2!kvirc@Star531723.dynamic.RZ.UniBw-Muenchen.de')
+my_bot = SoccerBot("SoccerBot", "server", 6667)
+my_bot.set_owner('')
 my_bot.connect('#thisisatestchan')
 my_bot.message('I am here!')
 
