@@ -18,7 +18,7 @@ class IrcBot:
     # List of owners
     bot_owners = []
 
-    logging.basicConfig(level=logging.INFO, filename="ircbot.log", format="%(asctime)s - %(name)s - %(message)s",
+    logging.basicConfig(level=logging.DEBUG, filename="ircbot.log", format="%(asctime)s - %(name)s - %(message)s",
                         datefmt="%H:%M:%S", filemode='w')
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
@@ -102,17 +102,18 @@ class IrcBot:
             elif findcommand(line, "PING "):
                 logging.info(line)
                 self.ping(line.split(' ')[1])
+            else:
+                logging.debug(line)
 
 def main():
     # Create and connect
     my_bot = IrcBot("Bot", "boomer.qld.au.starchat.net", 6667)
 
     my_bot.set_owner(':newbie|2!kvirc@Star531723.dynamic.RZ.UniBw-Muenchen.de')
-    my_bot.connect('#thisisatestchan')
+    my_bot.connect('#test')
     my_bot.message('I am here!')
 
     while 1:
         # Loop mandatory function to keep connection with server,alive!
         # return message for further processing
         my_bot.get_message
-
